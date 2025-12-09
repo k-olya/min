@@ -31,7 +31,7 @@ interface WebRTCState {
   createPeerConnection: () => void;
   createDataChannel: () => void;
   bindDataChannel: (channel: RTCDataChannel) => void;
-  sendMessage: (text: string) => void;
+  sendMessage: (text: string, type?: MessageType) => void;
   sendAvatar: () => void;
   addMessage: (message: Message) => void;
   generateOffer: () => Promise<void>;
@@ -188,16 +188,27 @@ export const useWebRTCStore = create<WebRTCState>((set, get) => ({
       return pc;
     },
     bindDataChannel: (channel: RTCDataChannel) => {
+      const MESSAGE_CALLBACKS = {
+        'avatar': (message: Message) => {
+          set((state) => ({ peer: state.peer ? { ...state.peer, avatar: message.text } : null }));
+        },
+        'disconnect': () => {
+          get().disconnect();
+        },
+        'message': (message: Message) => {
+          get().addMessage({...message, isOwn: false});
+        },
+      }
       channel.onmessage = (event) => {
         const parsed = JSON.parse(event.data);
         parsed.timestamp = new Date(parsed.timestamp);
-        if (parsed.type === 'avatar') {
-          set((state) => ({ peer: state.peer ? { ...state.peer, avatar: parsed.text } : null }));
-        } else if (parsed.type === 'disconnect') {
-          get().disconnect();
-        } else if (parsed.type === 'message') {
-          get().addMessage({...parsed, isOwn: false});
+        const cb = MESSAGE_CALLBACKS[parsed.type as MessageType];
+        if (!cb) {
+          console.warn('Unknown message type', parsed.type);
+          useUIStore.getState().showTooltip(`Unknown message type ${parsed.type}`);
+          return;
         }
+        cb(parsed);
       };
       set({ dataChannel: channel });
     },
@@ -211,7 +222,7 @@ export const useWebRTCStore = create<WebRTCState>((set, get) => ({
       get().sendAvatar();
       return channel;
     },
-    sendMessage: (text: string) => {
+    sendMessage: (text: string, type: MessageType = 'message') => {
       const { dataChannel } = get();
       if (!dataChannel || dataChannel.readyState !== 'open') {
         console.warn('Tried to send message while channel closed');
@@ -222,21 +233,14 @@ export const useWebRTCStore = create<WebRTCState>((set, get) => ({
         text,
         timestamp: new Date(),
       };
-      get().addMessage({...message, isOwn: true, type: 'message'});
-      dataChannel.send(JSON.stringify({...message, type: 'message'}));
+      if (type === 'message') {
+        get().addMessage({...message, isOwn: true, type});
+      }
+      dataChannel.send(JSON.stringify({...message, type}));
     },
     sendAvatar: () => {
-      const { dataChannel } = get();
       const avatar = useSettingsStore.getState().avatar;
-      if (!dataChannel || dataChannel.readyState !== 'open' || !avatar) {
-        return;
-      }
-      const message = {
-        id: crypto.randomUUID(),
-        text: avatar,
-        timestamp: new Date(),
-      };
-      dataChannel.send(JSON.stringify({...message, type: 'avatar'}));
+      get().sendMessage(avatar, 'avatar');
     },
     addMessage: (message: Message) => {
       set((state) => ({ messages: [...state.messages, message] }));
@@ -284,12 +288,7 @@ export const useWebRTCStore = create<WebRTCState>((set, get) => ({
       const pc = get().peerConnection;
       const dataChannel = get().dataChannel;
       if (dataChannel && dataChannel.readyState === 'open') {
-        const message = {
-          id: crypto.randomUUID(),
-          text: '',
-          timestamp: new Date(),
-        };
-        dataChannel.send(JSON.stringify({...message, type: 'disconnect'}));
+        get().sendMessage('', 'disconnect');
       }
       if (pc) {
         pc.close();
