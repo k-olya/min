@@ -1,7 +1,21 @@
-import { Hello } from "features/hello";
+import { useUIStore } from './stores/ui';
+import { ConnectionScreen } from './features/connection';
+import { ChatScreen } from './features/chat';
+import { SettingsScreen } from './features/settings';
+import { Layout } from './features/layout';
+import { Tooltip } from './features/ui/tooltip';
 
-function App() {
-  return <Hello />
+const SCREENS = {
+  "chat": ChatScreen,
+  "settings": SettingsScreen,
+  "connection": ConnectionScreen,
 }
 
-export default App
+function App() {
+  const { currentScreen } = useUIStore();
+  const ScreenComponent = SCREENS[currentScreen];
+
+  return <><Layout><ScreenComponent /></Layout><Tooltip /></>;
+}
+
+export default App;
