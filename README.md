@@ -1,6 +1,8 @@
-## React + TypeScript + Tailwind with Vite
+## min
 
-This is a starter project for react/ts single page applications using tailwindcss styles.
+minimalist serverless messenger working over webrtc
+
+
 Install dependencies
 ```
 npm i
