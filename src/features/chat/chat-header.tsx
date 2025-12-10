@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useWebRTCStore } from "../../stores/webrtc";
 import { useSettingsStore } from "../../stores/settings";
+import { useUIStore } from "../../stores/ui";
 import { FiMenu, FiUser, FiLogOut } from "react-icons/fi";
 
 export const ChatHeader = () => {
   const { peer, disconnect } = useWebRTCStore();
   const { name } = useSettingsStore();
+  const { peerActive } = useUIStore();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
@@ -18,8 +20,9 @@ export const ChatHeader = () => {
             <FiUser size={16} className="text-gray-400" />
           </div>
         )}
-        <div>
+        <div className="flex items-center space-x-2">
           <h1 className="text-xl font-bold">{peer?.name || 'Peer'}</h1>
+          <span className={`inline-block w-2 h-2 rounded-full ${peerActive ? 'bg-green-500' : 'bg-red-500'}`}></span>
         </div>
       </div>
       <div className="relative">

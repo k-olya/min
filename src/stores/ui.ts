@@ -8,6 +8,8 @@ interface UIState {
   setScreen: (screen: UIScreen) => void;
   tooltipMessage: string | null;
   showTooltip: (message: string) => void;
+  peerActive: boolean;
+  setPeerActive: (active: boolean) => void;
 }
 
 const settingsComplete = () => {
@@ -23,4 +25,6 @@ export const useUIStore = create<UIState>((set) => ({
     set({ tooltipMessage: message });
     setTimeout(() => set({ tooltipMessage: null }), 2000);
   },
+  peerActive: true,
+  setPeerActive: (active) => set({ peerActive: active }),
 }));

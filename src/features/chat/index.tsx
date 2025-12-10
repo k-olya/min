@@ -2,11 +2,11 @@ import { useWebRTCStore } from '../../stores/webrtc';
 import { useState } from 'react';
 import { ChatHeader } from './chat-header';
 import { FiSend } from 'react-icons/fi';
+import { TabState } from './tab-state';
 
 export const ChatScreen = () => {
   const {
     messages,
-    collectedCandidates,
     sendMessage,
   } = useWebRTCStore();
 
@@ -22,6 +22,7 @@ export const ChatScreen = () => {
   return (
     <div className="h-full bg-gray-900 text-white flex flex-col">
       <ChatHeader />
+      <TabState />
 
       {/* Messages Area - Takes remaining space */}
       <div className="flex-1 overflow-hidden flex flex-col">

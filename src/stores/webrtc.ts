@@ -4,7 +4,7 @@ import { Peer } from './peers';
 import { useUIStore } from './ui';
 
 export type Role = 'offerer' | 'answerer' | null;
-export type MessageType = 'message' | 'avatar' | 'disconnect';
+export type MessageType = 'message' | 'avatar' | 'disconnect' | 'tab';
 
 interface Message {
   id: string;
@@ -197,6 +197,9 @@ export const useWebRTCStore = create<WebRTCState>((set, get) => ({
         },
         'message': (message: Message) => {
           get().addMessage({...message, isOwn: false});
+        },
+        'tab': (message: Message) => {
+          useUIStore.getState().setPeerActive(message.text === 'true');
         },
       }
       channel.onmessage = (event) => {
