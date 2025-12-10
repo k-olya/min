@@ -2,6 +2,8 @@
 
 minimalist serverless messenger working over webrtc
 
+[gh-pages demo](https://k-olya.github.io/min/)
+
 
 Install dependencies
 ```
